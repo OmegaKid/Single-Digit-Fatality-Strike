@@ -4,7 +4,8 @@
 color background;
 player p;
 int score;
-int shift;    //what does this do?
+int shiftRight;  //tells how much to shift all enemies facing right
+int shiftLeft;   //tells how much to shift all enemies facing left
 float difficulty;  //controls the speed of the enemies
 int missLag;      //basically the time remaining until the player can attack again after missing
 float missOpacity;
@@ -23,7 +24,8 @@ void setup()
   rectMode(CENTER);
   imageMode(CENTER);
   score = 0;
-  shift = 0;
+  shiftRight = 0;
+  shiftLeft = 0;
   difficulty = 1.9;
   missLag = 0;
   missOpacity = 0;
@@ -106,7 +108,8 @@ void draw()
   {
     if (eListLeft.get(0).x <= p.playerX + eListLeft.get(0).wide)  //if the enemy reaches a certain range of the player (basically next to the player)
     {
-      shift(eListLeft.get(0).x/5); //moves all of the enemie to right
+      //shift(eListLeft.get(0).x/5); //moves all of the enemies to right. Removed until further notice
+      shiftLeft = (int)(eListLeft.get(0).x/4);
       difficulty = 0;
       missLag = 20;
       p.health--;
@@ -119,7 +122,8 @@ void draw()
   {
     if (eListRight.get(0).x >= p.playerX - eListRight.get(0).wide)  //if the enemy reaches a certain range of the player
     {
-      shift(-eListRight.get(0).x/5); //moves all of the enemies to the left
+      //shift(-eListRight.get(0).x/5); //moves all of the enemies to the left
+      shiftRight = (int)(-eListRight.get(0).x/4);
       difficulty = 0;
       missLag = 20;
       p.health--;
@@ -128,6 +132,10 @@ void draw()
     }
   }
   
+  
+  //ENTERING THE TIMEZONE
+  //Everything under here is more or less a timer
+  
   //brings speed of enemies back up to its original amount (hardcoded at 1.9 for now)
   if(difficulty < 1.9)
   {
@@ -135,6 +143,34 @@ void draw()
       difficulty += .005;
     else
       difficulty += .01;
+  }
+  
+  //should shift the enemies left or right each a fraction of the shift amount
+  if(shiftRight != 0)
+  {
+     for (Enemy e : eListRight)
+       e.x += shiftRight * .15;
+     for(Background b: bgList)
+     {
+       b.x += (shiftRight * .07);
+     }
+     if(shiftRight > 0)
+       shiftRight -= shiftRight * 0.5;
+     else
+       shiftRight += shiftRight * -0.5;
+  }
+  if(shiftLeft != 0)
+  {
+     for (Enemy e : eListLeft)
+       e.x += shiftLeft * .15;
+     for(Background b: bgList)
+     {
+       b.x += (shiftLeft * 0.07);
+     }
+     if(shiftLeft > 0)
+       shiftLeft -= shiftLeft * 0.5;
+     else
+       shiftLeft += shiftLeft * -0.5;
   }
   
   //acts as a timer counting down to when the player can attack again
@@ -153,8 +189,8 @@ void draw()
     textSize(30);
     fill(255, 200, 200, missOpacity);
     pushMatrix();  //it wiggles around because screw priorities
-    translate(width/2, 90);
-    rotate(PI * random(-0.05, 0.05));
+    translate(random(width/2 - 10, width/2 + 10), random(85, 95));
+    rotate(PI * random(-.1, .1));
     PImage img = loadImage("miss_text.gif");
     tint(255, missOpacity);  //changes the images opacity
     image(img, 0, 0, 200, 100);
@@ -162,6 +198,8 @@ void draw()
   }
   tint(255, 255);
   p.render(); //v important
+  
+  println(shiftLeft + " " + shiftRight);
 }
 
 
@@ -171,14 +209,18 @@ void keyPressed()
   {
     if (eListLeft.size() > 0 && eListLeft.get(0) != null && eListLeft.get(0).x > p.playerX && eListLeft.get(0).x <= p.playerX + p.range)  //if there's an enemy and it's within range
     { 
-      shift(p.playerX - eListLeft.get(0).x); //shifts everything around the player
+      //shift(p.playerX - eListLeft.get(0).x); //shifts everything around the player
+      shiftLeft = (int)(-p.playerX - eListLeft.get(0).x);
+      shiftRight = (int)(-p.playerX - eListLeft.get(0).x);
       eListLeft.remove(0); //deletes the thing
       difficulty = 1.5;  //causes a short pause
       score++; //pretty self explanitory
     }
     else  //if there are no enemies in range and the player will miss
     {
-      shift(-p.range);  //"moves" the player
+      //shift(-p.range);  //"moves" the player
+      shiftLeft = (int)(-p.playerX - eListLeft.get(0).x);
+      shiftRight = (int)(-p.playerX - eListLeft.get(0).x);
       missOpacity = 255;  //make the miss text appear
       missLag = 40;  //stuns the player for a bit
     }
@@ -189,14 +231,18 @@ void keyPressed()
   {
     if (eListRight.size() > 0 && eListRight.get(0) != null && eListRight.get(0).x < p.playerX && eListRight.get(0).x > p.playerX - p.range)  //if there's an enemy and it's within range
     { 
-      shift(p.playerX - eListRight.get(0).x); //shifts everything around the player
+      //shift(p.playerX - eListRight.get(0).x); //shifts everything around the player
+      shiftLeft = (int)(p.playerX - eListLeft.get(0).x);
+      shiftRight = (int)(p.playerX - eListLeft.get(0).x);
       eListRight.remove(0); //deletes the thing
       difficulty = 1.5;  //causes a short pause
       score++; //pretty self explanitory
     }
     else  //if there are no enemies in range and the player will miss
     {
-      shift(p.range);  //"moves" the player
+      //shift(p.range);  //"moves" the player
+      shiftLeft = (int)(p.playerX - eListLeft.get(0).x);
+      shiftRight = (int)(p.playerX - eListLeft.get(0).x);
       missOpacity = 255;  //make the miss text appear
       missLag = 40;  //stuns the player for a bit
     }
