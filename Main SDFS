@@ -210,17 +210,17 @@ void keyPressed()
     if (eListLeft.size() > 0 && eListLeft.get(0) != null && eListLeft.get(0).x > p.playerX && eListLeft.get(0).x <= p.playerX + p.range)  //if there's an enemy and it's within range
     { 
       //shift(p.playerX - eListLeft.get(0).x); //shifts everything around the player
-      shiftLeft = (int)(-p.playerX - eListLeft.get(0).x);
-      shiftRight = (int)(-p.playerX - eListLeft.get(0).x);
+      shiftLeft = (int)(-1 * eListLeft.get(0).x - p.playerX);  //I think the problem is here. Something about the difference in x values seems like it's wrong
+      shiftRight = (int)(-1 * eListLeft.get(0).x - p.playerX);
       eListLeft.remove(0); //deletes the thing
       difficulty = 1.5;  //causes a short pause
-      score++; //pretty self explanitory
+      score++; //pretty self explanatory
     }
     else  //if there are no enemies in range and the player will miss
     {
       //shift(-p.range);  //"moves" the player
-      shiftLeft = (int)(-p.playerX - eListLeft.get(0).x);
-      shiftRight = (int)(-p.playerX - eListLeft.get(0).x);
+      shiftLeft = (int)(-1 * p.range);
+      shiftRight = (int)(-1 * p.range);
       missOpacity = 255;  //make the miss text appear
       missLag = 40;  //stuns the player for a bit
     }
@@ -232,8 +232,8 @@ void keyPressed()
     if (eListRight.size() > 0 && eListRight.get(0) != null && eListRight.get(0).x < p.playerX && eListRight.get(0).x > p.playerX - p.range)  //if there's an enemy and it's within range
     { 
       //shift(p.playerX - eListRight.get(0).x); //shifts everything around the player
-      shiftLeft = (int)(p.playerX - eListLeft.get(0).x);
-      shiftRight = (int)(p.playerX - eListLeft.get(0).x);
+      shiftLeft = (int)(p.playerX - eListRight.get(0).x);
+      shiftRight = (int)(p.playerX - eListRight.get(0).x);
       eListRight.remove(0); //deletes the thing
       difficulty = 1.5;  //causes a short pause
       score++; //pretty self explanitory
@@ -241,8 +241,8 @@ void keyPressed()
     else  //if there are no enemies in range and the player will miss
     {
       //shift(p.range);  //"moves" the player
-      shiftLeft = (int)(p.playerX - eListLeft.get(0).x);
-      shiftRight = (int)(p.playerX - eListLeft.get(0).x);
+      shiftLeft = (int)p.range;
+      shiftRight = (int)p.range;
       missOpacity = 255;  //make the miss text appear
       missLag = 40;  //stuns the player for a bit
     }
