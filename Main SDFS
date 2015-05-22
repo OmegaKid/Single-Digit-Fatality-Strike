@@ -4,8 +4,9 @@
 color background;
 player p;
 int score;
-int shift;    //what does this do?
 float difficulty;  //controls the speed of the enemies
+float shiftR;
+float shiftL;
 int missLag;      //basically the time remaining until the player can attack again after missing
 float missOpacity;
 ArrayList<Enemy> eListLeft;
@@ -14,7 +15,7 @@ ArrayList<Background> bgList;  //should hold multiple instances of one backgroun
 
 void setup()
 {
-  background = color(60, 60, 60);
+  background = color(60, 60, 70);
   background(background);
   size(1200, 600);
   fill(255);
@@ -23,8 +24,9 @@ void setup()
   rectMode(CENTER);
   imageMode(CENTER);
   score = 0;
-  shift = 0;
   difficulty = 1.9;
+  shiftR = 0;
+  shiftL = 0;
   missLag = 0;
   missOpacity = 0;
   p = new player();
@@ -106,7 +108,8 @@ void draw()
   {
     if (eListLeft.get(0).x <= p.playerX + eListLeft.get(0).wide)  //if the enemy reaches a certain range of the player (basically next to the player)
     {
-      shift(eListLeft.get(0).x/5); //moves all of the enemie to right
+      shiftR = p.range/4;
+//      shiftL = -p.range/4;
       difficulty = 0;
       missLag = 20;
       p.health--;
@@ -119,7 +122,8 @@ void draw()
   {
     if (eListRight.get(0).x >= p.playerX - eListRight.get(0).wide)  //if the enemy reaches a certain range of the player
     {
-      shift(-eListRight.get(0).x/5); //moves all of the enemies to the left
+//      shiftR = -p.range/4;
+      shiftL = -p.range/4;
       difficulty = 0;
       missLag = 20;
       p.health--;
@@ -127,6 +131,10 @@ void draw()
       score--;
     }
   }
+  
+  
+  //ENTERING THE TIMEZONE
+  //Everything under here is more or less a timer
   
   //brings speed of enemies back up to its original amount (hardcoded at 1.9 for now)
   if(difficulty < 1.9)
@@ -153,8 +161,8 @@ void draw()
     textSize(30);
     fill(255, 200, 200, missOpacity);
     pushMatrix();  //it wiggles around because screw priorities
-    translate(width/2, 90);
-    rotate(PI * random(-0.05, 0.05));
+    translate(random(width), random(85, 95));
+    rotate(PI * random(-1, 1));
     PImage img = loadImage("miss_text.gif");
     tint(255, missOpacity);  //changes the images opacity
     image(img, 0, 0, 200, 100);
@@ -162,6 +170,18 @@ void draw()
   }
   tint(255, 255);
   p.render(); //v important
+  
+  println(shiftR + " " + shiftL);
+  
+  if(shiftR > -1 || shiftR < 1 || shiftL > -1 || shiftL < 1)
+  {
+    float currShiftR = shiftR * .5;
+    float currShiftL = shiftL * .5;
+    shift(currShiftL, currShiftR);
+    shiftR = shiftR - shiftR * .5;
+    shiftL = shiftL - shiftL * .5;
+    
+  }
 }
 
 
@@ -171,14 +191,16 @@ void keyPressed()
   {
     if (eListLeft.size() > 0 && eListLeft.get(0) != null && eListLeft.get(0).x > p.playerX && eListLeft.get(0).x <= p.playerX + p.range)  //if there's an enemy and it's within range
     { 
-      shift(p.playerX - eListLeft.get(0).x); //shifts everything around the player
+      shiftR = p.playerX - eListLeft.get(0).x;
+      shiftL = p.playerX - eListLeft.get(0).x;
       eListLeft.remove(0); //deletes the thing
       difficulty = 1.5;  //causes a short pause
-      score++; //pretty self explanitory
+      score++; //pretty self explanatory
     }
     else  //if there are no enemies in range and the player will miss
     {
-      shift(-p.range);  //"moves" the player
+      shiftR = -p.range;
+      shiftL = -p.range;
       missOpacity = 255;  //make the miss text appear
       missLag = 40;  //stuns the player for a bit
     }
@@ -188,15 +210,17 @@ void keyPressed()
   if (keyCode == LEFT && missLag == 0)  //if left arrow is pressed and the player didn't just miss
   {
     if (eListRight.size() > 0 && eListRight.get(0) != null && eListRight.get(0).x < p.playerX && eListRight.get(0).x > p.playerX - p.range)  //if there's an enemy and it's within range
-    { 
-      shift(p.playerX - eListRight.get(0).x); //shifts everything around the player
+    {
+      shiftR = p.playerX - eListRight.get(0).x;
+      shiftL = p.playerX - eListRight.get(0).x;
       eListRight.remove(0); //deletes the thing
       difficulty = 1.5;  //causes a short pause
       score++; //pretty self explanitory
     }
     else  //if there are no enemies in range and the player will miss
     {
-      shift(p.range);  //"moves" the player
+      shiftR = p.range;
+      shiftL = p.range;
       missOpacity = 255;  //make the miss text appear
       missLag = 40;  //stuns the player for a bit
     }
@@ -204,40 +228,16 @@ void keyPressed()
   }
 }
 
-
-
-void shift(float dist)
+void shift(float distL, float distR)
 {
   for (Enemy e : eListLeft)
-    e.x += dist; //dist can be negative, so it goes both ways
+    e.x += distR; //dist can be negative, so it goes both ways
   for (Enemy e : eListRight)
-    e.x += dist;
+    e.x += distL;
   for(Background b: bgList)
   {
-    b.x += (dist * .7);
+    b.x += (distR + distL)/2;
   }
-}
-
-//this will be used for screenShake()
-void shift(float dist, float distY)
-{
-  for (Enemy e : eListLeft)
-  {
-    e.x += dist; //dist can be negative, so it goes both ways
-    e.y += distY;
-  }
-  for (Enemy e : eListRight)
-  {
-    e.x += dist;
-    e.y += distY;
-  }
-  for(Background b: bgList)
-  {
-    b.x += (dist * .7);
-    b.x += (distY * .7);
-  }
-  p.playerX += dist;
-  p.playerY += distY;
 }
 
 //this method will shake by translating randomly each time it is called
