@@ -1,12 +1,17 @@
 //due to the jerkiness of the motion in shift(), a flash should be implemented that covers up the abruptness of the shift
 //suggest placing a rect over the entire screen at the end that has fill(x), with x decreasing in opacity to give it a flash effect.
 
+//need to implement code to stop enemies from spawning on each other
+//this is mostly done
+
 color background;
 player p;
 int score;
-float difficulty;  //controls the speed of the enemies
+float enemySpeed;  //controls the speed of the enemies
+float difficulty;  //acts as the speed ceiling for enemies
 float shiftR;
 float shiftL;
+int spawnLag;
 int missLag;      //basically the time remaining until the player can attack again after missing
 float missOpacity;
 ArrayList<Enemy> eListLeft;
@@ -24,7 +29,8 @@ void setup()
   rectMode(CENTER);
   imageMode(CENTER);
   score = 0;
-  difficulty = 1.9;
+  enemySpeed = 1;
+  difficulty = 3.3;
   shiftR = 0;
   shiftL = 0;
   missLag = 0;
@@ -66,12 +72,27 @@ void draw()
     b.render();
   
   //this next segment spawns the enemies
-  if ((int)random(150) == 0)
+  if ((int)random(50) == 0 && spawnLag == 0)
   {
     if((int)random(2) == 0)
-      eListLeft.add(new Enemy("LEFT", difficulty));  //adds an enemy that spawn on the RIGHT facing LEFT
+    {
+      boolean enemyLeft = false;
+      for(Enemy e : eListLeft)
+        if(e.x > -e.wide * 1.2 && e.x < e.wide * 1.2)
+         enemyLeft = true;
+      if(!enemyLeft)
+        eListLeft.add(new Enemy("LEFT", enemySpeed));  //adds an enemy that spawn on the RIGHT facing LEFT
+    }
     else
-      eListRight.add(new Enemy("RIGHT", difficulty));  //adds an enemy that spawn on the LEFT facing RIGHT
+    {
+      boolean enemyRight = false;
+      for(Enemy e : eListLeft)
+        if(e.x > width - e.wide * 1.2 && e.x < width + e.wide * 1.2)
+         enemyRight = true;
+      if(!enemyRight)
+        eListRight.add(new Enemy("RIGHT", enemySpeed));  //adds an enemy that spawn on the LEFT facing RIGHT
+    }
+    spawnLag = 60;
   }
 
   //goes through the list of enemies and renders them and then moves them
@@ -84,7 +105,7 @@ void draw()
         e.wayFacing = "LEFT";
       if(e.wayFacing.equals("LEFT") && e.x < p.playerX)
         e.wayFacing = "RIGHT";
-      e.speed = difficulty;
+      e.speed = enemySpeed;
       e.render();
       e.tick();
     }
@@ -97,7 +118,7 @@ void draw()
         e.wayFacing = "LEFT";
       if(e.wayFacing.equals("LEFT") && e.x < p.playerX)
         e.wayFacing = "RIGHT";
-      e.speed = difficulty;
+      e.speed = enemySpeed;
       e.render();
       e.tick();
     }
@@ -110,7 +131,9 @@ void draw()
     {
       shiftR = p.range/4;
 //      shiftL = -p.range/4;
-      difficulty = 0;
+      enemySpeed = 0;
+      if(difficulty > 3)
+        difficulty -= 0.5;
       missLag = 20;
       p.health--;
       p.wayFacing = "RIGHT";
@@ -124,7 +147,9 @@ void draw()
     {
 //      shiftR = -p.range/4;
       shiftL = -p.range/4;
-      difficulty = 0;
+      enemySpeed = 0;
+      if(difficulty > 3.5)
+        difficulty -= 0.5;
       missLag = 20;
       p.health--;
       p.wayFacing = "LEFT";
@@ -136,14 +161,20 @@ void draw()
   //ENTERING THE TIMEZONE
   //Everything under here is more or less a timer
   
-  //brings speed of enemies back up to its original amount (hardcoded at 1.9 for now)
-  if(difficulty < 1.9)
+  //brings speed of enemies back up to its original amount (hardcoded at 2.5 for now)
+  if(enemySpeed < difficulty)
   {
-    if(difficulty < .05)  //after it gets past .05, increments at a higher value
-      difficulty += .005;
-    else
-      difficulty += .01;
+    if(enemySpeed < difficulty * 0.65)  //after it gets past a certain point it increments at a higher value
+      enemySpeed += difficulty * 0.01;
+    else 
+      enemySpeed += difficulty * 0.1;
+    if(enemySpeed > difficulty * 0.9 && enemySpeed < difficulty * 1.1) //if the enemy speed is within a certain range of the desired pace
+      enemySpeed = difficulty; //this stops enemy speed from going above the value of difficulty
   }
+  
+  //prevents enemies from spawning on top of one another
+  if(spawnLag > 0)
+    spawnLag--;
   
   //acts as a timer counting down to when the player can attack again
   if(missLag > 0)
@@ -171,7 +202,7 @@ void draw()
   tint(255, 255);
   p.render(); //v important
   
-  println(shiftR + " " + shiftL);
+  println(difficulty + " " + enemySpeed);
   
   if(shiftR > -1 || shiftR < 1 || shiftL > -1 || shiftL < 1)
   {
@@ -180,8 +211,14 @@ void draw()
     shift(currShiftL, currShiftR);
     shiftR = shiftR - shiftR * .5;
     shiftL = shiftL - shiftL * .5;
-    
+    if(shiftR > -0.5 && shiftR < 0.5)
+      shiftR = 0;
+    if(shiftL > -0.5 && shiftL < 0.5)
+      shiftL = 0;    
   }
+  
+  if(p.health <= 0)
+    lose();
 }
 
 
@@ -194,7 +231,8 @@ void keyPressed()
       shiftR = p.playerX - eListLeft.get(0).x;
       shiftL = p.playerX - eListLeft.get(0).x;
       eListLeft.remove(0); //deletes the thing
-      difficulty = 1.5;  //causes a short pause
+      enemySpeed = difficulty/3;  //causes a short pause
+      difficulty += .05;
       score++; //pretty self explanatory
     }
     else  //if there are no enemies in range and the player will miss
@@ -214,7 +252,8 @@ void keyPressed()
       shiftR = p.playerX - eListRight.get(0).x;
       shiftL = p.playerX - eListRight.get(0).x;
       eListRight.remove(0); //deletes the thing
-      difficulty = 1.5;  //causes a short pause
+      enemySpeed = difficulty/3;  //causes a short pause
+      difficulty += .05;
       score++; //pretty self explanitory
     }
     else  //if there are no enemies in range and the player will miss
@@ -253,6 +292,7 @@ void screenShake(boolean isShake)
 //for when the player loses
 void lose()
 {
+  System.exit(0);
   //placeholder
 }
 
