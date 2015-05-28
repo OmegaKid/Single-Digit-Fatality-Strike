@@ -66,14 +66,20 @@ void draw()
   if(!reset)
   {
     background(0);
-    text("You lost \n :P", width/2, height/2);
-    text("Score: " + score, width/2, height * 0.66);
-    text("Press Enter to return to start screen", width/2, height * 0.75);
+    textMode(CENTER);
+    fill(255);
+    textSize(20);
+    text("You lost :P", width/2 - 50, height/2 - 40);
+    text("Score: " + score, width/2 - 40, height * 0.6);
+    text("Press Enter to return to start screen", width/2 - 150, height * 0.7);
   }
   else if (!isPlaying && reset)
   {
     setup();
     image(splash, width/2, height/2);
+    textSize(30);
+    fill(0);
+    text("PRESS UP TO BEGIN!!! WOW!", width  * .01, height * .98);
   }
   else
   {
@@ -213,7 +219,6 @@ void draw()
     
     if (missOpacity > 0)  //displays text when the player misses
     {
-      textSize(30);
       fill(255, 200, 200, missOpacity);
       pushMatrix();  //it wiggles around because screw priorities
       translate(random(width/3, width * 0.66), random(85, 95));
@@ -231,8 +236,20 @@ void draw()
     image(bg_close, bg_closeX - 1200, height * 0.6);
     imageMode(CENTER);
     
-    text("Health: " + p.health, width/2 - 40, height * 0.75);
-    text("Score: " + score, width - 80, 20);
+    if(bg_closeX < 0)
+      bg_closeX = 1200;
+    if(bg_closeX > width)
+      bg_closeX = 0;
+      
+    if(bg_midX < 0)
+      bg_midX = 1200;
+    if(bg_midX > width)
+      bg_midX = 0;
+    
+    textSize(30);
+    text("Health: " + p.health, width/2 - 90, height * 0.78);
+    text("Score: " + score, width - 130, 30);
+    text("Difficulty: " + (int)(difficulty * 100), 10, 30);
     
     rectMode(CORNER);
     fill(255, 180, 180);
@@ -314,6 +331,9 @@ void keyPressed()
     
   if(keyCode == ENTER)
     reset = true;
+    
+  if(keyCode == DOWN)
+    p.health--;
 }
 
 void shift(float distL, float distR)
@@ -342,6 +362,7 @@ void lose()
   while(!reset)
   {
     background(0);
+    
     text("You lost \n :P", width/2, height/2);
     text(score, width/2, height * 0.66);
     text("Press Enter to return to start screen", width/2, height * 0.75);
