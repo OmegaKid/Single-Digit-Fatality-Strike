@@ -1,0 +1,60 @@
+import ddf.minim.*;
+
+class HotSpot
+{
+  int x, y, z, size;
+  color c;
+  color fill;
+  String sound;
+  boolean playedSound;
+  Minim m;
+  
+  HotSpot(int x2, int y2, int z2, color c)
+  {
+    x = x2;
+    y = y2;
+    z = z2;
+    this.c = color(random(255), random(255), random(255));
+    size = (int)(random(100, 200));
+    this.fill = color(random(255), random(255), random(255));
+    playedSound = false;
+  }
+  
+  void render()
+  {
+    pushMatrix();
+    stroke(this.c);
+    translate(x, y, z);
+    box(size);
+    popMatrix();
+  }
+  
+  boolean checkPoints(PVector[] depthPoints)
+  {
+   int pointsInBox = 0;
+   for(int i = 0; i < depthPoints.length; i+=66)
+    {
+      PVector currPoint = depthPoints[i];
+      if(currPoint.x > x - size / 2 && currPoint.x < x + size / 2)
+        if(currPoint.y > y - size / 2 && currPoint.y < y + size / 2)
+          if(currPoint.z > z - size / 2 && currPoint.z < z + size / 2)
+            pointsInBox++;
+    }
+    if(pointsInBox >= (int)(this.size*.2))
+    {
+      fill(this.fill);
+      if(!playedSound)
+      {
+        playedSound = !playedSound;
+        return true;
+      }
+    }
+    else
+    {
+      playedSound = false;
+      noFill();
+      return false;
+    }
+    return false;
+  }
+}
