@@ -7,10 +7,13 @@ PImage splash;
 PImage bg_close;
 PImage bg_mid;
 PImage bg_far;
+float bg_midX;
+float bg_closeX;
 
 color background;
 player p;
 boolean isPlaying;
+boolean reset;
 int score;
 float enemySpeed;  //controls the speed of the enemies
 float difficulty;  //acts as the speed ceiling for enemies
@@ -29,6 +32,9 @@ void setup()
   bg_close = loadImage("bg_close.png");
   bg_mid = loadImage("bg_mid.png");
   bg_far = loadImage("bg_far.png");
+  bg_closeX = 1200;
+  bg_midX = 1200;
+  
   background = color(60, 60, 70);
   background(background);
   size(1200, 600);
@@ -38,6 +44,7 @@ void setup()
   rectMode(CENTER);
   imageMode(CENTER);
   isPlaying = false;
+  reset = true;
   score = 0;
   enemySpeed = 1;
   difficulty = 3.3;
@@ -51,40 +58,31 @@ void setup()
   bgList = new ArrayList<Background>();
   bgList.add(new Background("bgTexture.gif"));
 
-  //this should eventually be moved
-  for (int i = 0; i < width/bgList.get (0).wide; i++)  //should fill the background list with as many instances of the background image as needed to keep the background filled
-  {
-    bgList.add(new Background("bgTexture.gif"));
-  }
-  //this loops any new backgrounds and removes any old ones
-  for (int i = 0; i < bgList.size (); i++)
-  {
-    Background b = bgList.get(i);
-    b.x = -b.wide + (b.wide * i);
-  }
 }
 
 void draw()
 {
-  if (!isPlaying)
+  println("reset: " + reset + " : isPlaying: " + isPlaying);
+  if(!reset)
   {
+    background(0);
+    text("You lost \n :P", width/2, height/2);
+    text("Score: " + score, width/2, height * 0.66);
+    text("Press Enter to return to start screen", width/2, height * 0.75);
+  }
+  else if (!isPlaying && reset)
+  {
+    setup();
     image(splash, width/2, height/2);
-  } else
+  }
+  else
   {
-    background(background);
+    background(bg_far);
+    imageMode(CORNER);
+    image(bg_mid, bg_midX, 0, 1200, 600);
+    image(bg_mid, bg_midX - 1200, 0, 1200, 600);
+    imageMode(CENTER);
     textSize(15);
-
-    rectMode(CORNER);
-    fill(255, 180, 180);
-    rect(width/2 + 2, height/2 + 100, p.range - 2, 20);  //sets right range block
-    fill(150, 200, 255);
-    rect(width/2 - 2, height/2 + 100, -p.range + 2, 20);  //sets left range block
-    rectMode(CENTER);  //sets rectMode back to it should be for rendering enemies
-
-
-
-    for (Background b : bgList)
-      b.render();
 
     //this next segment spawns the enemies
     if ((int)random(30) == 0 && spawnLag == 0)
@@ -212,8 +210,7 @@ void draw()
       missOpacity -= 5;
 
     fill(255);
-    text("Health: " + p.health, width/2 - 40, height * 0.75);
-    text("Score: " + score, width - 80, 20);
+    
     if (missOpacity > 0)  //displays text when the player misses
     {
       textSize(30);
@@ -228,6 +225,21 @@ void draw()
     }
     tint(255, 255);
     p.render(); //v important
+    
+    imageMode(CORNER);
+    image(bg_close, bg_closeX, height * 0.6);
+    image(bg_close, bg_closeX - 1200, height * 0.6);
+    imageMode(CENTER);
+    
+    text("Health: " + p.health, width/2 - 40, height * 0.75);
+    text("Score: " + score, width - 80, 20);
+    
+    rectMode(CORNER);
+    fill(255, 180, 180);
+    rect(width/2 + 2, height/2 + 100, p.range - 2, 20);  //sets right range block
+    fill(150, 200, 255);
+    rect(width/2 - 2, height/2 + 100, -p.range + 2, 20);  //sets left range block
+    rectMode(CENTER);  //sets rectMode back to it should be for rendering enemies
 
     if (shiftR > -1 || shiftR < 1 || shiftL > -1 || shiftL < 1)
     {
@@ -243,7 +255,10 @@ void draw()
     }
 
     if (p.health <= 0)
-      lose();
+    {
+      reset = false;
+      isPlaying = false;
+    }
   }
 }
 
@@ -293,7 +308,12 @@ void keyPressed()
     }
   }
   if (keyCode == UP)
-    isPlaying = !isPlaying;
+  {
+    isPlaying = true;
+  }
+    
+  if(keyCode == ENTER)
+    reset = true;
 }
 
 void shift(float distL, float distR)
@@ -302,10 +322,8 @@ void shift(float distL, float distR)
     e.x += distR; //dist can be negative, so it goes both ways
   for (Enemy e : eListRight)
     e.x += distL;
-  for (Background b : bgList)
-  {
-    b.x += (distR + distL)/2;
-  }
+  bg_midX += (shiftR + shiftL)/10;
+  bg_closeX += (shiftR + shiftL)/2;
 }
 
 //this method will shake by translating randomly each time it is called
@@ -321,8 +339,14 @@ void screenShake(boolean isShake)
 //for when the player loses
 void lose()
 {
-  System.exit(0);
-  //placeholder
+  while(!reset)
+  {
+    background(0);
+    text("You lost \n :P", width/2, height/2);
+    text(score, width/2, height * 0.66);
+    text("Press Enter to return to start screen", width/2, height * 0.75);
+  }
+  isPlaying = false;
 }
 
 //debugging methods
