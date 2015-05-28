@@ -95,10 +95,7 @@ void draw()
         for (Enemy e : eListRight)
         {
           if (e.x > -e.wide * 1.6 && e.x < e.wide * 1.6)
-          {
             enemyLeft = true;
-            println((int)e.x + " : 0");  
-          }
         }
         if (!enemyLeft)
         {
@@ -113,10 +110,7 @@ void draw()
         for (Enemy e : eListLeft)
         {
           if (e.x > width - (e.wide * 1.6) && e.x < width + (e.wide * 1.6))
-          {
             enemyRight = true;
-            println((int)e.x + " : " + (int)width); 
-          }
         }
         if (!enemyRight)
         {
@@ -215,7 +209,7 @@ void draw()
 
     //decreases the miss opacity back to 0 if it's not already
     if (missOpacity > 0)
-      missOpacity -= 3;
+      missOpacity -= 5;
 
     fill(255);
     text("Health: " + p.health, width/2 - 40, height * 0.75);
@@ -225,7 +219,7 @@ void draw()
       textSize(30);
       fill(255, 200, 200, missOpacity);
       pushMatrix();  //it wiggles around because screw priorities
-      translate(random(width), random(85, 95));
+      translate(random(width/3, width * 0.66), random(85, 95));
       rotate(PI * random(-1, 1));
       PImage img = loadImage("miss_text.gif");
       tint(255, missOpacity);  //changes the images opacity
