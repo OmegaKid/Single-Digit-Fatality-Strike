@@ -1,3 +1,12 @@
+import ddf.minim.spi.*;
+import ddf.minim.signals.*;
+import ddf.minim.*;
+import ddf.minim.analysis.*;
+import ddf.minim.ugens.*;
+import ddf.minim.effects.*;
+
+import processing.opengl.*;
+import SimpleOpenNI.*;
 //due to the jerkiness of the motion in shift(), a flash should be implemented that covers up the abruptness of the shift
 //suggest placing a rect over the entire screen at the end that has fill(x), with x decreasing in opacity to give it a flash effect.
 
@@ -232,8 +241,8 @@ void draw()
     p.render(); //v important
     
     imageMode(CORNER);
-    image(bg_close, bg_closeX, height * 0.6);
-    image(bg_close, bg_closeX - 1200, height * 0.6);
+    image(bg_close, bg_closeX, height * 0.6, 1200, 254);
+    image(bg_close, bg_closeX - 1200, height * 0.6, 1200, 254);
     imageMode(CENTER);
     
     if(bg_closeX < 0)
